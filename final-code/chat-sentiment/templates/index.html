@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot with Sentiment Analysis</title>
+    <style>
+        /* การจัดรูปแบบของหน้าจอ */
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('https://pbs.twimg.com/media/GGGz8khWAAAnZh0?format=jpg&name=large'); /* เปลี่ยนลิงค์นี้เป็นลิงค์รูปที่คุณต้องการ */
+            background-size: cover; /* ปรับขนาดภาพให้เต็มหน้าจอ */
+            background-position: center; /* จัดตำแหน่งภาพให้อยู่กลาง */
+            background-repeat: no-repeat; /* ไม่ให้ภาพซ้ำ */
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* การจัดรูปแบบของกล่องแชท */
+        .chat-container {
+            border: 1px solid #ccc; /* ขอบของกล่องแชท */
+            border-radius: 5px;
+            padding: 10px;
+            width: 1080px; /* ความกว้างของกล่อง */
+            height: 500px; /* ความสูงของกล่อง */
+            background-color: rgba(255, 255, 255, 0.9); /* พื้นหลังโปร่งใส */
+            overflow-y: auto; /* ให้เลื่อนข้อความได้ */
+            display: flex;
+            flex-direction: column; /* จัดข้อความเป็นแนวตั้ง */
+        }
+
+        /* ส่วนแสดงข้อความตอบกลับ */
+        #response {
+            margin-bottom: 20px;
+            flex: 1; /* ขยายพื้นที่เพื่อรองรับข้อความ */
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto; /* ให้เลื่อนข้อความได้ */
+        }
+
+        /* การจัดรูปแบบของข้อความ */
+        .message {
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 80%; /* ขนาดของข้อความ */
+            word-wrap: break-word; /* ให้ข้อความที่ยาวถูกตัดบรรทัด */
+            position: relative;
+        }
+
+        /* การจัดรูปแบบข้อความของผู้ใช้ */
+        .user-message {
+            background-color: #28a745;  /* สีพื้นหลังของข้อความผู้ใช้ */
+            border: 1px solid #c3e6cb;
+            text-align: right; /* จัดข้อความทางขวา */
+            margin-left: auto;
+            color: white; /* สีตัวอักษร */
+            margin-top: 1.6rem;
+        }
+
+        /* การจัดรูปแบบข้อความของแชทบอท */
+        .bot-message {
+            background-color: #b9424c;  /* สีพื้นหลังของข้อความบอท */
+            border: 1px solid #f5c6cb;
+            color: white; /* สีตัวอักษร */
+            text-align: left; /* จัดข้อความทางซ้าย */
+            margin-right: auto;
+        }
+
+        /* การจัดรูปแบบกลุ่มป้อนข้อมูล */
+        .input-group {
+            display: flex;
+            margin-top: 10px;
+            width: 1080px; /* ขนาดของกล่องป้อนข้อมูล */
+        }
+
+        /* การจัดรูปแบบของกล่องข้อความที่ผู้ใช้ป้อน */
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px 0 0 5px; /* มุมกลมเฉพาะด้านซ้าย */
+            height: 40px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        /* การจัดรูปแบบเมื่อกล่องข้อความถูกโฟกัส */
+        input[type="text"]:focus {
+            outline: none; /* เอาเส้นขอบที่เป็นโฟกัสออก */
+        }
+
+        /* การจัดรูปแบบปุ่มส่ง */
+        button {
+            padding: 0 15px;
+            border: none;
+            border-radius: 0 5px 5px 0; /* มุมกลมเฉพาะด้านขวา */
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            height: 40px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        /* การจัดรูปแบบเมื่อเลื่อนเม้าส์ไปบนปุ่ม */
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* การจัดรูปแบบสำหรับแสดงผลการวิเคราะห์ Sentiment */
+        .card {
+            margin: 10px;
+            width: calc(50% - 20px); /* ขนาดของการ์ด */
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-size: 16px;
+            background-color: #fff;
+            box-sizing: border-box; /* รวมขอบและ padding เข้ากับขนาดของการ์ด */
+        }
+
+        /* การจัดสีข้อความตามประเภทความรู้สึก */
+        .positive-text {
+            color: white;
+            background-color: #28a745; /* สีเขียวสำหรับข้อความเชิงบวก */
+            padding: 5px;
+            border-radius: 10px;
+        }
+
+        .negative-text {
+            color: rgb(39, 37, 37);
+            background-color: #dc3545; /* สีแดงสำหรับข้อความเชิงลบ */
+            padding: 5px; 
+            border-radius: 10px;
+        }
+
+        .neutral-text {
+            color: white;
+            background-color: #6c757d; /* สีเทาสำหรับข้อความเป็นกลาง */
+            padding: 5px;
+            border-radius: 10px;
+        }
+
+        /* การจัดรูปแบบพื้นที่แสดงการวิเคราะห์ Sentiment */
+        #sentiment {
+            display: flex;
+            flex-wrap: wrap; /* ให้ข้อความห่อขึ้นบรรทัดใหม่ */
+            justify-content: space-between; /* จัดการเว้นระยะห่าง */
+            width: 1080px; /* ขนาดของกล่อง Sentiment */
+        }
+
+        /* แสดง Tooltip เมื่อเลื่อนเม้าส์ไปบนข้อความ */
+        .sentiment-tooltip {
+            display: none; /* ซ่อน tooltip เริ่มต้น */
+            position: absolute;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            white-space: nowrap;
+            background-color: rgba(0, 0, 0, 0.7);
+            top: -30px;
+            right: 0;
+            z-index: 10;
+        }
+
+        /* แสดง tooltip เมื่อเลื่อนเม้าส์ไปบนข้อความผู้ใช้ */
+        .user-message:hover .sentiment-tooltip {
+            display: block;
+        }
+
+        .analysis-log-p {
+            text-align: center;
+        }
+    </style>
+    <script>
+        /* ฟังก์ชันสำหรับส่งข้อความ */
+        async function sendMessage() {
+            const userMessage = document.getElementById('userMessage').value; // รับค่าจากกล่องข้อความ
+            const responseDiv = document.getElementById('response'); // กล่องแสดงผลตอบกลับ
+            const sentimentDiv = document.getElementById('sentiment'); // กล่องแสดงการวิเคราะห์ความรู้สึก
+
+            /* เรียก API วิเคราะห์ Sentiment */
+            const sentimentRes = await fetch('/api/sentiment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: userMessage }) // ส่งข้อความไปยัง API
+            });
+
+            const sentimentData = await sentimentRes.json(); // รับผลการวิเคราะห์ความรู้สึก
+            
+            /* จัดหมวดหมู่ความรู้สึกเป็น Positive, Negative, หรือ Neutral */
+            let category = 'Neutral';
+            let textClass = 'neutral-text';
+            if (sentimentData.compound >= 0.05) {
+                category = 'Positive';
+                textClass = 'positive-text';
+            } else if (sentimentData.compound <= -0.05) {
+                category = 'Negative';
+                textClass = 'negative-text';
+            }
+
+            /* แสดงข้อความผู้ใช้พร้อม Tooltip สำหรับผลการวิเคราะห์ */
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.className = 'message user-message';
+            userMessageDiv.innerHTML = `<strong>USER :</strong> ${userMessage}`;
+
+            const tooltipSpan = document.createElement('span');
+            tooltipSpan.className = `sentiment-tooltip ${textClass}`;
+            tooltipSpan.innerText = category;
+
+            userMessageDiv.appendChild(tooltipSpan);
+            responseDiv.appendChild(userMessageDiv);
+
+            /* เรียก API เพื่อรับข้อความตอบกลับจากบอท */
+            const res = await fetch('/api/message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: userMessage }) // ส่งข้อความไปยังบอท
+            });
+            
+            const data = await res.json(); // รับข้อความตอบกลับจากบอท
+            const botMessageDiv = document.createElement('div');
+            botMessageDiv.className = 'message bot-message';
+            botMessageDiv.innerHTML = `<strong>BOT :</strong> ${data.response}`;
+            responseDiv.appendChild(botMessageDiv);
+
+            /* แสดงการวิเคราะห์ความรู้สึกในส่วนของ Sentiment Log */
+            sentimentDiv.innerHTML += `\
+                <div class="card">\
+                    <p class="analysis-log-p"><strong>Sentence:</strong> ${userMessage} </p>\
+                    <p class="sentiment-category analysis-log-p">\
+                        <strong>Category:</strong> <span class="${textClass}">${category}</span>\
+                    </p>\
+                </div>\
+            `;
+
+            /* รีเซ็ตกล่องข้อความและเลื่อนลงสุด */
+            document.getElementById('userMessage').value = '';
+            responseDiv.scrollTop = responseDiv.scrollHeight; 
+        }
+
+        /* ฟังก์ชันสำหรับส่งข้อความเมื่อกดปุ่ม Enter */
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // ป้องกันไม่ให้เกิดการสร้างบรรทัดใหม่
+                sendMessage(); // เรียกใช้ฟังก์ชันส่งข้อความ
+            }
+        });
+    </script>
+</head>
+<body>
+    <!-- หัวเรื่องของแชทบอท -->
+    <h1 style="font-size: 36px; color: #ffffff; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); background-color: rgba(0, 0, 0, 0.5); padding: 10px 20px; border-radius: 10px;">
+        Chatbot with Sentiment Analysis
+    </h1>
+    
+    <!-- กล่องแชท -->
+    <div class="chat-container">
+        <div id="response"></div> <!-- ส่วนแสดงผลตอบกลับของผู้ใช้และบอท -->
+        <div class="input-group">
+            <input type="text" id="userMessage" placeholder="Type your message here..." /> <!-- กล่องข้อความ -->
+            <button onclick="sendMessage()">Send</button> <!-- ปุ่มส่งข้อความ -->
+        </div>
+    </div>
+
+    <!-- กล่องสำหรับแสดงการวิเคราะห์ความรู้สึก -->
+    <div id="sentiment"></div>
+</body>
+</html>

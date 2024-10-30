@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Chatbot</title>
+    <style>
+        /* การตกแต่งหน้าต่างแชท */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #chat-container {
+            width: 400px;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #chat-header {
+            background-color: #4CAF50;
+            padding: 10px;
+            color: white;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        #chat-box {
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+            border-top: 1px solid #ddd;
+            flex-grow: 1;
+        }
+
+        #chat-box p {
+            margin: 10px 0;
+        }
+
+        #chat-box .user {
+            text-align: right;
+            color: blue;
+        }
+
+        #chat-box .bot {
+            text-align: left;
+            color: green;
+        }
+
+        #input-container {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+        }
+
+        #user_input {
+            flex-grow: 1;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        #send-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-left: 10px;
+            border-radius: 4px;
+        }
+
+        #send-btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="chat-container">
+        <div id="chat-header">Health Chatbot</div>
+        <div id="chat-box"></div>
+        <div id="input-container">
+            <input type="text" id="user_input" placeholder="Type your message...">
+            <button id="send-btn" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        function sendMessage() {
+            let userInput = document.getElementById("user_input").value;
+            if (userInput.trim() === "") {
+                return;
+            }
+
+            // เพิ่มข้อความผู้ใช้ใน chat-box
+            let chatBox = document.getElementById("chat-box");
+            let userMessage = document.createElement("p");
+            userMessage.classList.add("user");
+            userMessage.textContent = "You: " + userInput;
+            chatBox.appendChild(userMessage);
+
+            // ส่งข้อมูลไปยังเซิร์ฟเวอร์
+            fetch("/get_response", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ message: userInput })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // เพิ่มข้อความจากแชทบอทใน chat-box
+                let botMessage = document.createElement("p");
+                botMessage.classList.add("bot");
+                botMessage.textContent = "Bot: " + data.response;
+                chatBox.appendChild(botMessage);
+                
+                // เลื่อนหน้าจอลงด้านล่างสุด
+                chatBox.scrollTop = chatBox.scrollHeight;
+            });
+
+            // ล้างช่องกรอกข้อความ
+            document.getElementById("user_input").value = "";
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Chatbot</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background-image: url('https://pbs.twimg.com/media/GGGz8khWAAAnZh0?format=jpg&name=large'); /* เพิ่มลิงค์ภาพพื้นหลัง */
+            background-size: cover; /* ปรับขนาดภาพให้เต็มหน้าจอ */
+            background-position: center; /* จัดตำแหน่งภาพให้อยู่กลาง */
+            background-repeat: no-repeat; /* ไม่ให้ภาพซ้ำ */
+        }
+        #chat-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 255, 255, 0.8); /* ทำให้พื้นหลังเป็นโปร่งใสเล็กน้อย */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        #chat-box {
+            border: 1px solid #ccc;
+            width: 300px;
+            height: 400px;
+            overflow-y: scroll;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+        }
+        .message {
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 5px;
+            max-width: 80%;
+        }
+        .bot-message {
+            background-color: #e0e0e0;
+            text-align: left;
+            float: left;
+            clear: both;
+        }
+        .user-message {
+            background-color: #3f75ff;
+            color: white;
+            text-align: right;
+            float: right;
+            clear: both;
+        }
+        input[type="text"] {
+            width: 300px;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px;
+            margin-top: 10px;
+            width: 100px;
+            border: none;
+            background-color: #3f75ff;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #0056d7;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <h1>Simple Chatbot ถามตอบปกติ</h1>
+        <div id="chat-box">
+            <p class="bot-message"><b>Bot:</b> สวัสดีค่ะ! มีอะไรให้ช่วยไหมคะ?</p>
+        </div>
+        <input type="text" id="user-input" placeholder="พิมพ์ข้อความของคุณที่นี่...">
+        <button onclick="sendMessage()">ส่ง</button>
+    </div>
+
+    <script>
+        function sendMessage() {
+            var userInput = $("#user-input").val();  // รับข้อความที่ผู้ใช้ป้อน
+            $("#chat-box").append("<p class='user-message'><b>คุณ:</b> " + userInput + "</p>"); // เพิ่ม class user-message
+            $.post("/get", { msg: userInput }, function(response) {
+                $("#chat-box").append("<p class='bot-message'><b>Bot:</b> " + response + "</p>");  // แสดงคำตอบจาก Bot
+                $('#chat-box').scrollTop($('#chat-box')[0].scrollHeight);  // เลื่อนลงไปที่ข้อความล่าสุด
+            });
+            $("#user-input").val("");  // ล้างช่อง input
+        }
+    </script>
+</body>
+</html>
